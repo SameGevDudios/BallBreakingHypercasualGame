@@ -3,14 +3,21 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
+    [Tooltip("Sequence: Red, Blue, Yellow, Green")]
+    [SerializeField] private GameObject[] _frontBall, _backBall;
+    [SerializeField] private Animator _animator;
+    [SerializeField] private AnimationCurve _verticalVelocity,
+        _horizontalScale, _verticalScale;
+    [SerializeField] private float _jumpSpeed = 1, _jumpHeight = 1;
+    private int _colorIndex;
+    private int _previousColorIndex;
+    private bool _frontSide;
+    private Vector3 _startPosition;
     private void Start()
     {
         DeactivateFrontBalls();
         DeactivateBackBalls();
-        for (int i = 0; i < 2; i++)
-        {
-            ChangeColor();
-        }
+        ChangeColor();
         _startPosition = transform.position;
         StartCoroutine(MovingVertically());
         StartCoroutine(ScalingBall());
@@ -24,11 +31,6 @@ public class Ball : MonoBehaviour
         }
 #endif
     }
-    private bool _frontSide;
-    [Tooltip("Sequence: Red, Blue, Yellow, Green")]
-    [SerializeField] private GameObject[] _frontBall, _backBall;
-    private int _colorIndex;
-    private int _previousColorIndex;
     private void ChangeColor()
     {
         while(_colorIndex == _previousColorIndex)
@@ -47,6 +49,8 @@ public class Ball : MonoBehaviour
         }
         _frontSide = !_frontSide;
         _previousColorIndex = _colorIndex;
+        Invoke("ChangeColor", _verticalVelocity.keys[_verticalVelocity.keys.Length - 1].time);
+        _animator.SetTrigger("ChangeSide");
     }
     public void ChangeColor(int colorIndex)
     {
@@ -72,11 +76,6 @@ public class Ball : MonoBehaviour
         foreach (GameObject ball in _backBall)
             ball.SetActive(false);
     }
-
-    [SerializeField] private AnimationCurve _verticalVelocity,
-        _horizontalScale, _verticalScale;
-    [SerializeField] private float _jumpSpeed = 1, _jumpHeight = 1;
-    private Vector3 _startPosition;
     private IEnumerator MovingVertically()
     {
         float currentTime = 0;
