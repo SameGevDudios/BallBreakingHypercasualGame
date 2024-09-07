@@ -2,61 +2,86 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private BallMovement _ballMovement;
     [SerializeField] private ChangeColor _ball, _currentPlatform;
+    [SerializeField] private Animator _ballAnimator, _platformAnimator;
     private float _speed = 1f;
-    private float _timer = 0.5f;
+    private float _timer;
     private int _platformChosen;
+    private int _bounces;
     private bool _rightToWin;
 
+    private void Start()
+    {
+        _timer = _speed / 2f;
+        SetGameSpeed();
+    }
     public void Update()
     {
         _timer += Time.deltaTime;
-        if(_timer >= 1 / _speed)
+        if (_timer >= 1 / _speed)
         {
             CheckColors();
             _timer = 0;
         }
-        if (Input.GetKeyDown(KeyCode.A)) ChoosePlaftorm(false);
-        if (Input.GetKeyDown(KeyCode.D)) ChoosePlaftorm(true);
+        if (Input.GetKeyDown(KeyCode.A)) ChooseRightPlaftorm(false);
+        if (Input.GetKeyDown(KeyCode.D)) ChooseRightPlaftorm(true);
     }
     public void SetColors()
     {
-        int order = Random.Range(0, 2);
+        _rightToWin = Random.Range(0, 2) == 1;
         int winColor = Random.Range(0, 4);
+        int looseColor = Random.Range(0, 4);
+        while(looseColor == winColor) looseColor = Random.Range(0, 4);
         _ball.Change(winColor);
-        if(order == 0)
+        if (_rightToWin)
         {
+            _currentPlatform.Change(looseColor);
             _currentPlatform.Change(winColor);
-            _currentPlatform.Change();
         }
         else
         {
-            _currentPlatform.Change();
             _currentPlatform.Change(winColor);
+            _currentPlatform.Change(looseColor);
         }
-        _rightToWin = order == 1;
     }
-    public void ChoosePlaftorm(bool rightPlatform)
+    public void ChooseRightPlaftorm(bool rightPlatform)
     {
         _platformChosen = rightPlatform ? 1 : 0;
         _currentPlatform.transform.eulerAngles = Vector3.up * (rightPlatform ? 89.99f : -89.99f);
     }
     public void CheckColors()
     {
-        if (_platformChosen == 1)
+        switch (_platformChosen) // 0 - left, 1 - right
         {
-            if (_rightToWin) Win();
-            else Loose();
+            case 0:
+                if (!_rightToWin) Win();
+                else Loose();
+                break;
+            case 1:
+                if (_rightToWin) Win();
+                else Loose();
+                break;
+            default:
+                Loose();
+                break;
         }
-        else if(_platformChosen == 0)
+        _platformChosen = -1;
+        _currentPlatform.transform.eulerAngles = Vector3.zero;
+        SetColors();
+        _bounces++;
+        print("Bounces: " + _bounces);
+        if(_bounces % 10 == 0)
         {
-            if (!_rightToWin) Win();
-            else Loose();
+            _speed += 0.1f / (_speed * _speed);
+            SetGameSpeed();
         }
-        else
-        {
-            Loose();
-        }
+    }
+    private void SetGameSpeed()
+    {
+        _ballMovement.ChangeSpeed(_speed);
+        _ballAnimator.speed = _speed;
+        _platformAnimator.speed = _speed;
     }
     private void Win()
     {
@@ -64,18 +89,12 @@ public class GameManager : MonoBehaviour
         // Instantiate new platform from pool
         // _currentPlatform == poolPlatform
         // Move new platform
-        _platformChosen = -1;
-        _currentPlatform.transform.eulerAngles = Vector3.zero;
-        SetColors();
         print("Player won, yay");
 
     }
     private void Loose()
     {
         // "You loose UI or smth"
-        _platformChosen = -1;
-        _currentPlatform.transform.eulerAngles = Vector3.zero;
-        SetColors();
         print("Player lost, nay >:(");
     }
 }

@@ -8,7 +8,7 @@ public class ChangeColor : MonoBehaviour
     private int _previousColorPrimary, _previousColorSecondary,
         _currentColorPrimary, _currentColorSecondary,
         _lastColor;
-    private bool _primarySide = true;
+    [SerializeField] bool _primarySide = true;
     public void Change()
     {
         while (_previousColorPrimary == _currentColorPrimary

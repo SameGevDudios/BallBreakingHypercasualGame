@@ -21,7 +21,7 @@ public class BallMovement : MonoBehaviour
         float totalTime = _verticalVelocity.keys[_verticalVelocity.keys.Length - 1].time;
         while (currentTime < totalTime)
         {
-            transform.position = _startPosition + Vector3.up * _verticalVelocity.Evaluate(currentTime) * _jumpHeight;
+            transform.position = _startPosition + Vector3.up * _verticalVelocity.Evaluate(currentTime) * _jumpHeight / _jumpSpeed;
             currentTime += Time.deltaTime * _jumpSpeed;
             yield return new WaitForEndOfFrame();
         }
