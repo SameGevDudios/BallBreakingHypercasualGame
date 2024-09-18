@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class ChangeColor : MonoBehaviour
 {
-    [SerializeField] private Animator _animator;
     [Tooltip("Sequence: Red, Blue, Yellow, Green")]
     [SerializeField] private GameObject[] _objectPrimary, _objectSecondary;
     private int _previousColorPrimary, _previousColorSecondary,
@@ -30,7 +29,6 @@ public class ChangeColor : MonoBehaviour
             _lastColor = _currentColorSecondary;
         }
         _primarySide = !_primarySide;
-        _animator.SetTrigger("ChangeSide");
     }
     public void Change(int newColor)
     {
@@ -45,7 +43,6 @@ public class ChangeColor : MonoBehaviour
             _objectSecondary[newColor].SetActive(true);
         }
         _primarySide = !_primarySide;
-        _animator.SetTrigger("ChangeSide");
     }
     private void RandomizeColor()
     {

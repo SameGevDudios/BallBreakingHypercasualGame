@@ -1,11 +1,13 @@
 using UnityEngine;
-
+using System.Collections;
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private PlayerHealth _playerHealth;
+    [SerializeField] private Transform _platformSpawnPoint;
     [SerializeField] private BallMovement _ballMovement;
     [SerializeField] private ChangeColor _ball, _currentPlatform;
-    [SerializeField] private Animator _ballAnimator, _platformAnimator;
-    private float _speed = 1f;
+    [SerializeField] private Animator _ballAnimator, _platformAnimator, _flyAwayAnimator;
+    [SerializeField] private float _speed = 1f;
     private float _timer;
     private int _platformChosen;
     private int _bounces;
@@ -14,7 +16,8 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         _timer = _speed / 2f;
-        SetGameSpeed();
+        _currentPlatform = PoolManager.Instance.InstantiateFromPool("Platform", _platformSpawnPoint.position, Quaternion.identity).GetComponent<ChangeColor>();
+        GetNewPlatform();
     }
     public void Update()
     {
@@ -22,6 +25,7 @@ public class GameManager : MonoBehaviour
         if (_timer >= 1 / _speed)
         {
             CheckColors();
+            Invoke("GetNewPlatform", .1f / _speed);
             _timer = 0;
         }
         if (Input.GetKeyDown(KeyCode.A)) ChooseRightPlaftorm(false);
@@ -45,10 +49,23 @@ public class GameManager : MonoBehaviour
             _currentPlatform.Change(looseColor);
         }
     }
+    private void GetNewPlatform()
+    {
+        _currentPlatform.gameObject.SetActive(false);
+        _currentPlatform = PoolManager.Instance.InstantiateFromPool("Platform", _platformSpawnPoint.position, Quaternion.identity).GetComponent<ChangeColor>();
+        _platformAnimator = _currentPlatform.GetComponent<Platform>().GetPlatformAnimator();
+        _flyAwayAnimator = _currentPlatform.GetComponent<Platform>().GetFlyAwayAnimator();
+        SetGameSpeed();
+        _currentPlatform.gameObject.SetActive(true);
+        StartCoroutine(MoveCurrentPlatform());
+        SetColors();
+        _ballAnimator.SetTrigger("ChangeSide");
+    }
     public void ChooseRightPlaftorm(bool rightPlatform)
     {
         _platformChosen = rightPlatform ? 1 : 0;
         _currentPlatform.transform.eulerAngles = Vector3.up * (rightPlatform ? 89.99f : -89.99f);
+        _platformAnimator.SetTrigger(rightPlatform ? "SpinRight" : "SpinLeft");
     }
     public void CheckColors()
     {
@@ -67,8 +84,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
         _platformChosen = -1;
-        _currentPlatform.transform.eulerAngles = Vector3.zero;
-        SetColors();
+        _flyAwayAnimator.SetTrigger("FlyAway");
         _bounces++;
         print("Bounces: " + _bounces);
         if(_bounces % 10 == 0)
@@ -90,11 +106,26 @@ public class GameManager : MonoBehaviour
         // _currentPlatform == poolPlatform
         // Move new platform
         print("Player won, yay");
+        _playerHealth.Heal();
 
     }
     private void Loose()
     {
         // "You loose UI or smth"
         print("Player lost, nay >:(");
+        _playerHealth.TakeDamage();
+    }
+    private IEnumerator MoveCurrentPlatform()
+    {
+        float moveDistance = 15f;
+        float moveDelta = 20f;
+        Transform platform = _currentPlatform.gameObject.transform;
+        platform.position = new Vector3(platform.position.x, -moveDistance, platform.position.z);
+        while(platform.position.y < 0)
+        {
+            platform.position += Vector3.up * _speed * moveDelta * Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+        platform.position = new Vector3(platform.position.x, 0, platform.position.z);
     }
 }
