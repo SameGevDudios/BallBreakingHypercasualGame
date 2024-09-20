@@ -5,9 +5,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerHealth _playerHealth;
     [SerializeField] private Transform _platformSpawnPoint;
     [SerializeField] private BallMovement _ballMovement;
-    [SerializeField] private ChangeColor _ball, _currentPlatform;
-    [SerializeField] private Animator _ballAnimator, _platformAnimator, _flyAwayAnimator;
-    [SerializeField] private float _speed = 1f;
+    [SerializeField] private ChangeColor _ball;
+    private ChangeColor _currentPlatform;
+    [SerializeField] private Animator _ballAnimator;
+    private Animator _platformAnimator, _flyAwayAnimator;
+    [SerializeField] private float _speed = 1f, _moveDistance = 15f;
     private float _timer;
     private int _platformChosen;
     private int _bounces;
@@ -117,11 +119,11 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator MoveCurrentPlatform()
     {
-        float moveDistance = 15f;
         float moveDelta = 20f;
         Transform platform = _currentPlatform.gameObject.transform;
-        platform.position = new Vector3(platform.position.x, -moveDistance, platform.position.z);
-        while(platform.position.y < 0)
+        // first platform should be half way up, because game starts from "half tact"
+        platform.position = new Vector3(platform.position.x, (_bounces == 0 ? -_moveDistance / 2 : -_moveDistance), platform.position.z);
+        while (platform.position.y < 0)
         {
             platform.position += Vector3.up * _speed * moveDelta * Time.deltaTime;
             yield return new WaitForEndOfFrame();
