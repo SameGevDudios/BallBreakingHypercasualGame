@@ -1,35 +1,58 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
+    [SerializeField] private GameManager _gameManager;
+    [SerializeField] private GameUI _gameUI;
+    [SerializeField] private RecordCounter _recordCounter;
+    [SerializeField] private Animator _healthAnimator, _gameOverAnimator;
     [SerializeField] private int _health, _healPoints;
     private int _maxHealth, _healTimer;
+    private bool _isDead;
     private void Start()
     {
         _maxHealth = _health;
     }
     public void Heal()
     {
-        _healTimer++;
-        if(_healTimer >= _healPoints)
+        if(_health < _maxHealth)
         {
-            _health = Mathf.Max(_maxHealth, _health++);
-            _healTimer = 0;
+            _healTimer++;
+            if (_healTimer >= _healPoints)
+            {
+                _health++;
+                _healTimer = 0;
+                _gameUI.UpdateHealthUI(_health, _maxHealth);
+                _healthAnimator.SetTrigger("Heal");
+            }
         }
     }
     public void TakeDamage()
     {
         _health--;
-        if(_health <= 0)
+        _healTimer = 0;
+        _gameUI.UpdateHealthUI(_health, _maxHealth);
+        _healthAnimator.SetTrigger("Shake");
+        if (_health <= 0 && !_isDead)
         {
             Death();
         }
     }
     private void Death()
     {
-        Time.timeScale = 0;
+        _recordCounter.SaveRecord();
+        _gameManager.EndGame();
+        _gameOverAnimator.SetTrigger("Action");
+        _isDead = true;
         print("##### Game Over #####");
+    }
+    public void Revive()
+    {
+        _health = _maxHealth;
+        _gameUI.SwitchGameUI(false);
+        _gameUI.UpdateScoreText(0);
+        _gameUI.UpdateHealthUI(_health, _maxHealth);
+        _gameOverAnimator.SetTrigger("GoIdle");
+        _isDead = false;
     }
 }

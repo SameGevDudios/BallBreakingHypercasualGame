@@ -1,9 +1,12 @@
 using UnityEngine;
+using UnityEngine.Events;
 using System.Collections;
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private PlayerHealth _playerHealth;
     [SerializeField] private Transform _platformSpawnPoint;
+    [SerializeField] private PlayerHealth _playerHealth;
+    [SerializeField] private GameUI _gameUI;
+    [SerializeField] private RecordCounter _recordCounter;
     [SerializeField] private BallMovement _ballMovement;
     [SerializeField] private ChangeColor _ball;
     private ChangeColor _currentPlatform;
@@ -13,25 +16,39 @@ public class GameManager : MonoBehaviour
     private float _timer;
     private int _platformChosen;
     private int _bounces;
-    private bool _rightToWin;
+    private bool _rightToWin, _startRequested, _gameStarted;
+
+    public Event GameEndEvent;
 
     private void Start()
     {
         _timer = _speed / 2f;
         _currentPlatform = PoolManager.Instance.InstantiateFromPool("Platform", _platformSpawnPoint.position, Quaternion.identity).GetComponent<ChangeColor>();
         GetNewPlatform();
+        _gameUI.SwitchGameUI(false);
     }
     public void Update()
     {
         _timer += Time.deltaTime;
+
         if (_timer >= 1 / _speed)
         {
-            CheckColors();
-            Invoke("GetNewPlatform", .1f / _speed);
+            if (_gameStarted)
+            {
+                CheckColors();
+                Invoke("GetNewPlatform", .1f / _speed);
+            }
             _timer = 0;
         }
-        if (Input.GetKeyDown(KeyCode.A)) ChooseRightPlaftorm(false);
-        if (Input.GetKeyDown(KeyCode.D)) ChooseRightPlaftorm(true);
+        if (_startRequested)
+        {
+            _gameUI.SwitchGameUI(true);
+            _gameStarted = true;
+            _startRequested = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.A) && _platformChosen != 0) ChooseRightPlaftorm(false);
+        if (Input.GetKeyDown(KeyCode.D) && _platformChosen != 1) ChooseRightPlaftorm(true);
     }
     public void SetColors()
     {
@@ -65,9 +82,12 @@ public class GameManager : MonoBehaviour
     }
     public void ChooseRightPlaftorm(bool rightPlatform)
     {
-        _platformChosen = rightPlatform ? 1 : 0;
-        _currentPlatform.transform.eulerAngles = Vector3.up * (rightPlatform ? 89.99f : -89.99f);
-        _platformAnimator.SetTrigger(rightPlatform ? "SpinRight" : "SpinLeft");
+        if (_gameStarted)
+        {
+            _platformChosen = rightPlatform ? 1 : 0;
+            _currentPlatform.transform.eulerAngles = Vector3.up * (rightPlatform ? 89.99f : -89.99f);
+            _platformAnimator.SetTrigger(rightPlatform ? "SpinRight" : "SpinLeft");
+        }
     }
     public void CheckColors()
     {
@@ -88,7 +108,6 @@ public class GameManager : MonoBehaviour
         _platformChosen = -1;
         _flyAwayAnimator.SetTrigger("FlyAway");
         _bounces++;
-        print("Bounces: " + _bounces);
         if(_bounces % 10 == 0)
         {
             _speed += 0.1f / (_speed * _speed);
@@ -103,19 +122,26 @@ public class GameManager : MonoBehaviour
     }
     private void Win()
     {
-        // Break cuurent platform,
-        // Instantiate new platform from pool
-        // _currentPlatform == poolPlatform
-        // Move new platform
-        print("Player won, yay");
+        _recordCounter.AddScore();
         _playerHealth.Heal();
-
     }
-    private void Loose()
+    private void Loose() => _playerHealth.TakeDamage();
+    public void StartGame()
     {
-        // "You loose UI or smth"
-        print("Player lost, nay >:(");
-        _playerHealth.TakeDamage();
+        _startRequested = true;
+        _recordCounter.GameStarted();
+    }
+    public void EndGame()
+    {
+        _gameStarted = false;
+        _speed = 1;
+        _bounces = 0;
+        SetGameSpeed();
+    }
+    public void SkinChanged(GameObject newSkin)
+    {
+        _ball = newSkin.GetComponent<ChangeColor>();
+        _ballAnimator = newSkin.GetComponent<Animator>();
     }
     private IEnumerator MoveCurrentPlatform()
     {
