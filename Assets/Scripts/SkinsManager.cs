@@ -48,6 +48,7 @@ public class SkinsManager : MonoBehaviour
             _gameUI.UnlockSkinButtons(_unlockedSkins);
             _unlockParticles.Play();
             _unlockAnimator.SetTrigger("SkinUnlocked");
+            AudioManager.Instance.PlaySkinUnlockAudio();
         }
     }
     private void SaveCurrentSkin() => PlayerPrefs.SetInt("CurrentSkin", _currentSkin);

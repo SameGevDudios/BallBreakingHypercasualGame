@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
 public class GameManager : MonoBehaviour
 {
@@ -87,6 +86,7 @@ public class GameManager : MonoBehaviour
             _platformChosen = rightPlatform ? 1 : 0;
             _currentPlatform.transform.eulerAngles = Vector3.up * (rightPlatform ? 89.99f : -89.99f);
             _platformAnimator.SetTrigger(rightPlatform ? "SpinRight" : "SpinLeft");
+            AudioManager.Instance.PlayChoosePlatformAudio();
         }
     }
     public void CheckColors()
@@ -124,6 +124,7 @@ public class GameManager : MonoBehaviour
     {
         _recordCounter.AddScore();
         _playerHealth.Heal();
+        AudioManager.Instance.PlayWinAudio();
     }
     private void Loose() => _playerHealth.TakeDamage();
     public void StartGame()

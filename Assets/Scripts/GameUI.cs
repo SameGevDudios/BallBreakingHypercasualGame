@@ -6,7 +6,7 @@ using TMPro;
 public class GameUI : MonoBehaviour
 {
     [SerializeField] private GameObject[] _heart, _menuElements, _gameElements, _skinLock;
-    [SerializeField] private GameObject _skinsPanel;
+    [SerializeField] private GameObject _skinsPanel, _soundStripe;
     [SerializeField] private TMP_Text _scoreText, _recordText;
     [SerializeField] private Button[] _skinButton;
     [SerializeField] private Image _skinsBar;
@@ -56,4 +56,5 @@ public class GameUI : MonoBehaviour
         }
         _skinsBar.fillAmount = xp;
     }
+    public void ActivateSoundStripe(bool soundOn) => _soundStripe.SetActive(!soundOn);
 }

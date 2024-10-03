@@ -33,18 +33,16 @@ public class PlayerHealth : MonoBehaviour
         _healTimer = 0;
         _gameUI.UpdateHealthUI(_health, _maxHealth);
         _healthAnimator.SetTrigger("Shake");
-        if (_health <= 0 && !_isDead)
-        {
-            Death();
-        }
+        AudioManager.Instance.PlayLooseAudio();
+        if (_health <= 0 && !_isDead) Death();
     }
     private void Death()
     {
         _recordCounter.SaveRecord();
         _gameManager.EndGame();
         _gameOverAnimator.SetTrigger("Action");
+        AudioManager.Instance.PlayDeathAudio();
         _isDead = true;
-        print("##### Game Over #####");
     }
     public void Revive()
     {
