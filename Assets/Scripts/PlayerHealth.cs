@@ -29,19 +29,20 @@ public class PlayerHealth : MonoBehaviour
     }
     public void TakeDamage()
     {
+        AudioManager.Instance.PlayLooseAudio();
         _health--;
         _healTimer = 0;
         _gameUI.UpdateHealthUI(_health, _maxHealth);
         _healthAnimator.SetTrigger("Shake");
-        AudioManager.Instance.PlayLooseAudio();
         if (_health <= 0 && !_isDead) Death();
     }
     private void Death()
     {
+        CoinsManager.Instance.GetCoins(_recordCounter.GetScore());
+        AudioManager.Instance.PlayDeathAudio();
         _recordCounter.SaveRecord();
         _gameManager.EndGame();
         _gameOverAnimator.SetTrigger("Action");
-        AudioManager.Instance.PlayDeathAudio();
         _isDead = true;
     }
     public void Revive()

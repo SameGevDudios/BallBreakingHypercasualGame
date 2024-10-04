@@ -40,16 +40,17 @@ public class SkinsManager : MonoBehaviour
     }
     private void UnlockSkin()
     {
-        if (_skinProgression >= _xpToProgress)
-        {
-            _unlockedSkins++;
-            _skinProgression = 0;
-            SaveSkins();
-            _gameUI.UnlockSkinButtons(_unlockedSkins);
-            _unlockParticles.Play();
-            _unlockAnimator.SetTrigger("SkinUnlocked");
-            AudioManager.Instance.PlaySkinUnlockAudio();
-        }
+        if (_skinProgression >= _xpToProgress) UnlockNewSkin();
+    }
+    public void UnlockNewSkin()
+    {
+        AudioManager.Instance.PlaySkinUnlockAudio();
+        _unlockedSkins++;
+        _skinProgression = 0;
+        SaveSkins();
+        _gameUI.UnlockSkinButtons(_unlockedSkins);
+        _unlockParticles.Play();
+        _unlockAnimator.SetTrigger("SkinUnlocked");
     }
     private void SaveCurrentSkin() => PlayerPrefs.SetInt("CurrentSkin", _currentSkin);
     private void LoadCurrentSkin() => _currentSkin = PlayerPrefs.GetInt("CurrentSkin", 0);

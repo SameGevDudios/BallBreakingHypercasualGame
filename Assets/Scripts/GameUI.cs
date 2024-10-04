@@ -7,7 +7,7 @@ public class GameUI : MonoBehaviour
 {
     [SerializeField] private GameObject[] _heart, _menuElements, _gameElements, _skinLock;
     [SerializeField] private GameObject _skinsPanel, _soundStripe;
-    [SerializeField] private TMP_Text _scoreText, _recordText;
+    [SerializeField] private TMP_Text _scoreText, _recordText, _coinsText;
     [SerializeField] private Button[] _skinButton;
     [SerializeField] private Image _skinsBar;
     [SerializeField] private Sprite[] _skinSprite;
@@ -36,8 +36,8 @@ public class GameUI : MonoBehaviour
     {
         for (int i = 0; i < _skinButton.Length; i++)
         {
-            _skinLock[i].SetActive(skinsUnlocked <= i);
-            _skinButton[i].interactable = skinsUnlocked > i;
+            _skinLock[i].SetActive(skinsUnlocked < i);
+            _skinButton[i].interactable = skinsUnlocked >= i;
         }
     }
     public void UpdateSkinSprite(int index) => _skinsBar.sprite = _skinSprite[index];
@@ -57,4 +57,5 @@ public class GameUI : MonoBehaviour
         _skinsBar.fillAmount = xp;
     }
     public void ActivateSoundStripe(bool soundOn) => _soundStripe.SetActive(!soundOn);
+    public void UpdateCoinsText(int coins) => _coinsText.text = coins.ToString();
 }
